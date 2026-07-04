@@ -1,9 +1,63 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Global Safety Net - Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global ID Validation Helper
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    // Global Authentication Helper
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+
+    // Song Schema and Integrity Validation Helper
+    function isValidSong(song) {
+      return song.songTitle is string && song.songTitle.size() <= 128
+          && song.artistName is string && song.artistName.size() <= 128
+          && song.audioUrl is string && song.audioUrl.size() <= 1024
+          && song.imageUrl is string && song.imageUrl.size() <= 1024
+          && song.uploadedBy is string && song.uploadedBy == request.auth.uid
+          && song.uploadedByName is string && song.uploadedByName.size() <= 128
+          && song.uploadedByEmail is string && song.uploadedByEmail.size() <= 128
+          && song.plays is int && song.plays >= 0
+          && song.likes is list;
+    }
+
+    // Songs Collection rules
     match /songs/{songId} {
+      // Anyone can read/list songs
       allow read: if true;
-      allow write: if request.auth != null;
+      
+      // Creating a new track
+      allow create: if isSignedIn() 
+                    && isValidId(songId)
+                    && isValidSong(request.resource.data)
+                    && request.resource.data.timestamp == request.time;
+                    
+      // Updating a track
+      allow update: if isSignedIn()
+                    && (
+                      // Case 1: Liking/unliking a track (any authenticated user can update ONLY the likes array)
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']))
+                      ||
+                      // Case 2: Full update by the original owner (cannot change uploadedBy, timestamp or plays)
+                      (resource.data.uploadedBy == request.auth.uid 
+                       && isValidSong(request.resource.data)
+                       && request.resource.data.timestamp == resource.data.timestamp
+                       && request.resource.data.plays == resource.data.plays
+                       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['songTitle', 'artistName', 'audioUrl', 'imageUrl', 'uploadedByName', 'uploadedByEmail', 'likes']))
+                    );
+
+      // Only the uploader can delete their track
+      allow delete: if isSignedIn() 
+                    && resource.data.uploadedBy == request.auth.uid;
     }
   }
 }

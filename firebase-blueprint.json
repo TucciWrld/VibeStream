@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "Song": {
+      "title": "Song",
+      "description": "A musical track uploaded by a user",
+      "type": "object",
+      "properties": {
+        "songTitle": {
+          "type": "string",
+          "description": "Title of the song"
+        },
+        "artistName": {
+          "type": "string",
+          "description": "Name of the artist or producer"
+        },
+        "audioUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Secure storage URL for the lossless audio file"
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Secure storage URL for the album artwork cover"
+        },
+        "uploadedBy": {
+          "type": "string",
+          "description": "User UID of the uploader"
+        },
+        "uploadedByName": {
+          "type": "string",
+          "description": "Display name of the uploader"
+        },
+        "uploadedByEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Email address of the uploader"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "plays": {
+          "type": "integer",
+          "description": "Total play/stream count"
+        },
+        "likes": {
+          "type": "array",
+          "description": "List of user UIDs who liked the track"
+        }
+      },
+      "required": [
+        "songTitle",
+        "artistName",
+        "audioUrl",
+        "imageUrl",
+        "uploadedBy",
+        "uploadedByName",
+        "uploadedByEmail",
+        "timestamp",
+        "plays",
+        "likes"
+      ]
+    }
+  },
+  "firestore": {
+    "songs/{songId}": {
+      "schema": {
+        "$ref": "#/entities/Song"
+      },
+      "description": "Global songs catalog collection"
+    }
+  }
+}
