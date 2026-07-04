@@ -1,0 +1,6 @@
+{
+  "name": "VibeStream",
+  "description": "A beautiful and functional, modern Music Streaming Web Application featuring custom audio uploads, dynamic playlist queues, real-time Firestore sync, and direct high-fidelity downloads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
